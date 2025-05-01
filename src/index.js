@@ -196,9 +196,13 @@ var EewAdapter = class {
       eew.eewExecute(data_object);
     const result = eew.showEewInfo(this.showEewLogs, this.showEewEmoji);
     // 保证mag是number
-    var mag = Number(result.mag);
+    var mag = Number(eew.mag);
+    custLog(`mag是${mag}，阈值是${this.magnitudeThreshold}`);
     if(mag < this.magnitudeThreshold) {
-      custLog(this.ctx, "info", `地震预警震级 ${result.mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`);
+      custLog(this.ctx, "info", `地震预警震级 ${mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`);
+      for (var item of this.sendList) {
+        if (item["target"] == "Friend") this.ctx.sendMessageToFriend(item[id], `地震预警震级 ${mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`); 
+      }
       return;
     }
     for (var item of this.sendList) {
@@ -302,7 +306,7 @@ var EewAdapter = class {
       case 2:
         return show_emoji ? "正在关闭 ⏳️" : "正在关闭...";
       case 3:
-        return show_emoji ? "无连接 ❌ (socket not ready)" : "无连接 (socket not ready)";
+        return show_emoji ? "无连接 ❌ (socket ng)" : "无连接 (socket ng)";
     }
   }
   info(show_emoji = true) {
@@ -313,15 +317,17 @@ var EewAdapter = class {
 `;
     result += `目标数量：共 ${this.sendList ? this.sendList.length : 0} 个 ${show_emoji ? "🧑" : ""}
 `;
+    result += `阈值：${this.magnitudeThreshold} 级\n`;
     return result;
   }
-  setEewSwAllows(sc_eew_sw, fj_eew_sw, cwa_eew_sw, jma_eew_sw, jma_eqlist_sw, cenc_eqlist_sw) {
+  setEewSwAllows(sc_eew_sw, fj_eew_sw, cwa_eew_sw, jma_eew_sw, jma_eqlist_sw, cenc_eqlist_sw, magnitudeThreshold) {
     this.eewAllows["sc_eew"] = sc_eew_sw;
     this.eewAllows["fj_eew"] = fj_eew_sw;
     this.eewAllows["cwa_eew"] = cwa_eew_sw;
     this.eewAllows["jma_eew"] = jma_eew_sw;
     this.eewAllows["jma_eqlist"] = jma_eqlist_sw;
     this.eewAllows["cenc_eqlist"] = cenc_eqlist_sw;
+    this.magnitudeThreshold = magnitudeThreshold;
   }
   async test2() {
     const test_str = `{"type": "jma_eew", "Title": "緊急地震速報（予報）", "CodeType": "Ｍ、最大予測震度及び主要動到達予測時刻の緊急地震速報", "Issue": {"Source": "大阪", "Status": "通常"}, "EventID": "20240719211116", "Serial": 1, "AnnouncedTime": "2024/07/19 21:11:29", "OriginTime": "2024/07/19 21:11:05", "Hypocenter": "千葉県北西部", "Latitude": 35.7, "Longitude": 140.1, "Magunitude": 3.5, "Depth": 70, "MaxIntensity": "2", "Accuracy": {"Epicenter": "IPF 法（5 点以上）", "Depth": "IPF 法（5 点以上）", "Magnitude": "防災科研システム"}, "MaxIntChange": {"String": "不明、未設定時、キャンセル時", "Reason": "不明、未設定時、キャンセル時"}, "WarnArea": [], "isSea": false, "isTraining": false, "isAssumption": false, "isWarn": false, "isFinal": false, "isCancel": false, "OriginalText": "37 04 00 240719211129 C11 240719211105 ND20240719211116 NCN001 JD/'/'/'/'/'/'/'/'/'/'/'/'/'/' JN/'/'/' 341 N357 E1401 070 35 02 RK44204 RT00/'/'/' RC/'/'/'/'/' 9999=", "Pond": "144"}`;
@@ -516,7 +522,7 @@ function apply(ctx, config) {
   ctx.on("ready", () => {
     if (eewAdaper == void 0) {
       eewAdaper = new EewAdapter(ctx, EEW_BOTLIST, EEW_SENDLIST, SHOW_EEWLOG, SHOW_EEWEMOJE);
-      eewAdaper.setEewSwAllows(SC_SW, FJ_SW, CMA_SW, JMA_SW, JEQLST_SW, CEQLST_SW);
+      eewAdaper.setEewSwAllows(SC_SW, FJ_SW, CMA_SW, JMA_SW, JEQLST_SW, CEQLST_SW, M_THRESHOLD);
     }
     custLog(ctx, "success", "plugin ready");
   });
@@ -574,7 +580,7 @@ function apply(ctx, config) {
     } catch {
     }
     eewAdaper = new EewAdapter(ctx, EEW_BOTLIST, EEW_SENDLIST, SHOW_EEWLOG, SHOW_EEWEMOJE);
-    eewAdaper.setEewSwAllows(SC_SW, FJ_SW, CMA_SW, JMA_SW, JEQLST_SW, CEQLST_SW);
+    eewAdaper.setEewSwAllows(SC_SW, FJ_SW, CMA_SW, JMA_SW, JEQLST_SW, CEQLST_SW, M_THRESHOLD);
     custLog(ctx, "success", "ws reset");
     return "地震预警重置成功";
   });
