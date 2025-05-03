@@ -200,10 +200,7 @@ var EewAdapter = class {
     custLog(`mag是${mag}，阈值是${this.magnitudeThreshold}`);
     if(mag < this.magnitudeThreshold) {
       custLog(this.ctx, "info", `地震预警震级 ${mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`);
-      for (var item of this.sendList) {
-        if (item["target"] == "Friend") this.ctx.sendMessageToFriend(item[id], `地震预警震级 ${mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`); 
-      }
-      return;
+      eew = void 0;
     }
     for (var item of this.sendList) {
       switch (item["target"]) {
@@ -258,7 +255,7 @@ var EewAdapter = class {
         case "jma_eqlist":
           await this.sendEew(data_object);
           break;
-        case "cenc_eqlist":
+        case "cenc_eqlist":``
           await this.sendEew(data_object);
           break;
         case "heartbeat":
