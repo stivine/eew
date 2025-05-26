@@ -202,19 +202,22 @@ var EewAdapter = class {
       custLog(this.ctx, "info", `地震预警震级 ${mag} 低于阈值 ${this.magnitudeThreshold}，不进行推送`);
       eew = void 0;
     }
-    for (var item of this.sendList) {
-      switch (item["target"]) {
-        case "Friend":
-          await this.sendMessageToFriend(item["id"], result);
-          break;
-        case "Group":
-          await this.sendMessageToGroup(item["id"], result);
-          break;
-        default:
-          break;
+    else {
+      for (var item of this.sendList) {
+        switch (item["target"]) {
+          case "Friend":
+            await this.sendMessageToFriend(item["id"], result);
+            break;
+          case "Group":
+            await this.sendMessageToGroup(item["id"], result);
+            break;
+          default:
+            break;
+        }
       }
+      eew = void 0;
     }
-    eew = void 0;
+
   }
   // 获取所有可被允许发送消息的平台
   getSenderBotList() {
@@ -255,7 +258,7 @@ var EewAdapter = class {
         case "jma_eqlist":
           await this.sendEew(data_object);
           break;
-        case "cenc_eqlist":``
+        case "cenc_eqlist":
           await this.sendEew(data_object);
           break;
         case "heartbeat":
