@@ -141,6 +141,7 @@ var EewAdapter = class {
   showEewEmoji;
   magnitudeThreshold;
   ctx;
+  eew_addr;
   eewAllows = {
     "sc_eew": false,
     "fj_eew": false,
@@ -149,13 +150,14 @@ var EewAdapter = class {
     "cenc_eqlist": true,
     "jma_eqlist": true
   };
-  constructor(ctx, bot_list, send_list, eew_log, eew_emoji, magnitudeThreshold) {
+  constructor(ctx, bot_list, send_list, eew_log, eew_emoji, magnitudeThreshold, eew_addr) {
     this.ctx = ctx;
     this.botsList = bot_list;
     this.sendList = send_list;
     this.showEewLogs = eew_log;
     this.showEewEmoji = eew_emoji;
     this.magnitudeThreshold = magnitudeThreshold;
+    this.eew_addr = eew_addr;
   }
   async sendMessageToFriend(user_id, message) {
     for (var bot of this.getSenderBotList())
@@ -271,6 +273,9 @@ var EewAdapter = class {
     };
     this.socket.onclose = () => {
       custLog(this.ctx, "success", "ws closed");
+      this.socket = void 0;
+      this.setup(this.eew_addr, this.ctx.config.eewTimeout);
+      this.start();
     };
     this.socket.onerror = (error) => {
       custLog(this.ctx, "error", `ws error: ${error}`);
@@ -521,7 +526,7 @@ function apply(ctx, config) {
   var eewAdaper;
   ctx.on("ready", () => {
     if (eewAdaper == void 0) {
-      eewAdaper = new EewAdapter(ctx, EEW_BOTLIST, EEW_SENDLIST, SHOW_EEWLOG, SHOW_EEWEMOJE);
+      eewAdaper = new EewAdapter(ctx, EEW_BOTLIST, EEW_SENDLIST, SHOW_EEWLOG, SHOW_EEWEMOJE, M_THRESHOLD, EEW_ADDR);
       eewAdaper.setEewSwAllows(SC_SW, FJ_SW, CMA_SW, JMA_SW, JEQLST_SW, CEQLST_SW, M_THRESHOLD);
     }
     custLog(ctx, "success", "plugin ready");
